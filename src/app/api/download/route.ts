@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Descargar, convertir a mp3 a 320kbps y guardar con el nombre original del video
-    // Se agregan extractor-args para bypass de restriccion bot de YouTube en servidores datacenter (Vercel)
+    // Se usan clientes ios y tv_embedded para bypass completo del bloqueo de IP de centros de datos en Vercel
     const ffmpegArg = fs.existsSync(/*turbopackIgnore: true*/ resolvedFfmpegPath) ? `--ffmpeg-location "${resolvedFfmpegPath}"` : "";
-    const command = `"${ytDlpPath}" -f bestaudio -x --audio-format mp3 --audio-quality 320K ${ffmpegArg} --restrict-filenames -o "${outputPathTemplate}" --js-runtimes node --extractor-args "youtube:player_client=mweb,android" "${url}"`;
+    const command = `"${ytDlpPath}" -f bestaudio -x --audio-format mp3 --audio-quality 320K ${ffmpegArg} --restrict-filenames -o "${outputPathTemplate}" --js-runtimes node --extractor-args "youtube:player_client=ios,tv_embedded" "${url}"`;
     await execAsync(command);
 
     // Encontrar el archivo generado en el directorio temporal
