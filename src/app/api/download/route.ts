@@ -35,15 +35,21 @@ export async function POST(req: NextRequest) {
       } catch (e) {}
     }
     
-    const resolvedFfmpegPath = ffmpegPath || path.join(process.cwd(), "node_modules", "ffmpeg-static", isWin ? "ffmpeg.exe" : "ffmpeg");
-    if (!isWin && resolvedFfmpegPath) {
+    let resolvedFfmpegPath = path.join(process.cwd(), "node_modules", "ffmpeg-static", isWin ? "ffmpeg.exe" : "ffmpeg");
+    if (!fs.existsSync(/*turbopackIgnore: true*/ resolvedFfmpegPath) && ffmpegPath && fs.existsSync(/*turbopackIgnore: true*/ ffmpegPath)) {
+      resolvedFfmpegPath = ffmpegPath;
+    }
+
+    if (!isWin && fs.existsSync(/*turbopackIgnore: true*/ resolvedFfmpegPath)) {
       try {
         fs.chmodSync(resolvedFfmpegPath, 0o755);
       } catch (e) {}
     }
 
-    // Descargar, convertir a mp3 a 320kbps y guardar con el nombre original del video (restringido a ASCII para evitar errores HTTP)
-    const command = `"${ytDlpPath}" -f bestaudio -x --audio-format mp3 --audio-quality 320K --ffmpeg-location "${resolvedFfmpegPath}" --restrict-filenames -o "${outputPathTemplate}" --js-runtimes node "${url}"`;
+    // Descargar, convertir a mp3 a 320kbps y guardar con el nombre original del video
+    // Se agregan extractor-args para bypass de restriccion bot de YouTube en servidores datacenter (Vercel)
+    const ffmpegArg = fs.existsSync(/*turbopackIgnore: true*/ resolvedFfmpegPath) ? `--ffmpeg-location "${resolvedFfmpegPath}"` : "";
+    const command = `"${ytDlpPath}" -f bestaudio -x --audio-format mp3 --audio-quality 320K ${ffmpegArg} --restrict-filenames -o "${outputPathTemplate}" --js-runtimes node --extractor-args "youtube:player_client=mweb,android" "${url}"`;
     await execAsync(command);
 
     // Encontrar el archivo generado en el directorio temporal
