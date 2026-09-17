@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     const uniqueTmpDir = path.join(os.tmpdir(), `ytdlp-${Date.now()}`);
     fs.mkdirSync(uniqueTmpDir, { recursive: true });
 
+    const outputPathTemplate = path.join(uniqueTmpDir, "%(title)s.%(ext)s");
+
     const isWin = process.platform === "win32";
     const ytDlpBin = isWin ? "yt-dlp.exe" : "yt-dlp";
     const ffmpegBin = isWin ? "ffmpeg.exe" : "ffmpeg";
