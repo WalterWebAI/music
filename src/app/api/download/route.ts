@@ -22,9 +22,12 @@ export async function POST(req: NextRequest) {
     const uniqueTmpDir = path.join(os.tmpdir(), `ytdlp-${Date.now()}`);
     fs.mkdirSync(uniqueTmpDir, { recursive: true });
 
-    const outputPathTemplate = path.join(uniqueTmpDir, "%(title)s.%(ext)s");
-    const ytDlpPath = path.join(process.cwd(), "node_modules", "youtube-dl-exec", "bin", "yt-dlp.exe");
-    const resolvedFfmpegPath = path.join(process.cwd(), "node_modules", "ffmpeg-static", "ffmpeg.exe");
+    const isWin = process.platform === "win32";
+    const ytDlpBin = isWin ? "yt-dlp.exe" : "yt-dlp";
+    const ffmpegBin = isWin ? "ffmpeg.exe" : "ffmpeg";
+
+    const ytDlpPath = path.join(process.cwd(), "node_modules", "youtube-dl-exec", "bin", ytDlpBin);
+    const resolvedFfmpegPath = ffmpegPath || path.join(process.cwd(), "node_modules", "ffmpeg-static", ffmpegBin);
 
     // Descargar, convertir a mp3 a 320kbps y guardar con el nombre original del video (restringido a ASCII para evitar errores HTTP)
     const command = `"${ytDlpPath}" -f bestaudio -x --audio-format mp3 --audio-quality 320K --ffmpeg-location "${resolvedFfmpegPath}" --restrict-filenames -o "${outputPathTemplate}" --js-runtimes node "${url}"`;
